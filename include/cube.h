@@ -33,6 +33,9 @@ namespace rubiktrace {
 
     constexpr std::optional<Move> string_to_move(const std::string& str);
 
+    // The order of entries in these face vectors should reflect a flat cube net
+    // It would be good to have some kind of logic to ensure state validity, although this step is implied
+    // so long as the state is manipulated by interfacing with a Cube object.
     struct CubeState {
         std::vector<Face> u_face;
         std::vector<Face> f_face;
@@ -40,6 +43,8 @@ namespace rubiktrace {
         std::vector<Face> l_face;
         std::vector<Face> b_face;
         std::vector<Face> d_face;
+
+        bool operator==(const CubeState&) const = default;
     };
 
     class Cube {
