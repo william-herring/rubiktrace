@@ -37,7 +37,7 @@ TEST_CASE("Test cube initialisations") {
     SUBCASE("Initialise with WR scramble") {
         CubeState scrambled_state;
         scrambled_state.u_face = { RIGHT, LEFT, LEFT, UP, UP, UP, DOWN, FRONT, UP };
-        scrambled_state.f_face = { FRONT, DOWN, FRONT, UP, FRONT, RIGHT, FRONT, RIGHT, DOWN };
+        scrambled_state.f_face = { FRONT, DOWN, FRONT, UP, FRONT, RIGHT, UP, RIGHT, DOWN };
         scrambled_state.r_face = { RIGHT, RIGHT, UP, FRONT, RIGHT, RIGHT, RIGHT, DOWN, LEFT };
         scrambled_state.l_face = { UP, FRONT, RIGHT, UP, LEFT, LEFT, LEFT, LEFT, LEFT };
         scrambled_state.b_face = { DOWN, DOWN, DOWN, BACK, BACK, BACK, BACK, BACK, BACK };
