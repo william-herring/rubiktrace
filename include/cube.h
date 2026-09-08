@@ -1,5 +1,6 @@
 #pragma once
 
+#include <utility>
 #include <vector>
 #include <string>
 #include <sstream>
@@ -31,7 +32,7 @@ namespace rubiktrace {
         D,
     };
 
-    constexpr std::optional<Move> string_to_move(const std::string& str);
+    std::optional<Move> string_to_move(const std::string& str);
 
     // The order of entries in these face vectors should reflect a flat cube net
     // It would be good to have some kind of logic to ensure state validity, although this step is implied
@@ -54,7 +55,7 @@ namespace rubiktrace {
     public:
         Cube();
         Cube(const std::string& scramble);
-        Cube(const CubeState& initial_state) : state(initial_state), distance_from_origin(0) {}
+        Cube(CubeState  initial_state) : state(std::move(initial_state)), distance_from_origin(0) {}
 
         void set_solved();
         void set_state(const CubeState& new_state);

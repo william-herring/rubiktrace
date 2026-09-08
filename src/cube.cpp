@@ -3,7 +3,7 @@
 
 using namespace rubiktrace;
 
-constexpr std::optional<Move> string_to_move(const std::string& str) {
+std::optional<Move> string_to_move(const std::string& str) {
     if (str == "U") return U;
     if (str == "F") return F;
     if (str == "R") return R;
@@ -46,15 +46,18 @@ void Cube::set_solved() {
 void Cube::set_state(const CubeState& new_state) { this->state = new_state; }
 CubeState Cube::get_state() const { return this->state; }
 
-void Cube::do_move(Move move, bool do_inverse, int repeat) {
+/**
+ * @brief A really hacky implementation of state transitions
+ * @param move The layer to rotate
+ * @param do_inverse If true, the face rotation will be anti-clockwise as opposed to clockwise
+ * @param repeat The number of times to repeat the move
+ */
+void Cube::do_move(const Move move, const bool do_inverse, const int repeat) {
     for (int i = 0; i < repeat; i++) {
-        // U move
-        // D face is unchanged
-        // TODO: Perform inverse sticker swaps
         CubeState* cube_state = &this->state;
         switch (move) {
             case U: {
-                rotate_face_stickers(cube_state->u_face, !do_inverse);
+                rotate_face_stickers(cube_state->u_face);
 
                 std::vector<Sticker> original_l_face = cube_state->l_face;
                 cube_state->l_face[0] = cube_state->f_face[0];
@@ -75,7 +78,7 @@ void Cube::do_move(Move move, bool do_inverse, int repeat) {
                 break;
             }
             case F: {
-                rotate_face_stickers(cube_state->f_face, !do_inverse);
+                rotate_face_stickers(cube_state->f_face);
 
                 std::vector<Sticker> original_u_face = cube_state->u_face;
                 cube_state->u_face[6] = cube_state->l_face[8];
@@ -96,7 +99,7 @@ void Cube::do_move(Move move, bool do_inverse, int repeat) {
                 break;
             }
             case R: {
-                rotate_face_stickers(cube_state->r_face, !do_inverse);
+                rotate_face_stickers(cube_state->r_face);
 
                 std::vector<Sticker> original_f_face = cube_state->f_face;
                 cube_state->f_face[2] = cube_state->d_face[2];
@@ -117,7 +120,7 @@ void Cube::do_move(Move move, bool do_inverse, int repeat) {
                 break;
             }
             case L: {
-                rotate_face_stickers(cube_state->l_face, !do_inverse);
+                rotate_face_stickers(cube_state->l_face);
 
                 std::vector<Sticker> original_f_face = cube_state->f_face;
                 cube_state->f_face[0] = cube_state->u_face[0];
@@ -137,18 +140,53 @@ void Cube::do_move(Move move, bool do_inverse, int repeat) {
                 cube_state->d_face[6] = original_f_face[6];
                 break;
             }
-            case B:
-                rotate_face_stickers(cube_state->b_face, !do_inverse);
+            case B: {
+                rotate_face_stickers(cube_state->b_face);
 
-                break;
-            case D:
-                rotate_face_stickers(cube_state->d_face, !do_inverse);
+                std::vector<Sticker> original_l_face = cube_state->l_face;
+                cube_state->l_face[0] = cube_state->u_face[2];
+                cube_state->l_face[3] = cube_state->u_face[1];
+                cube_state->l_face[6] = cube_state->u_face[0];
 
+                cube_state->u_face[0] = cube_state->r_face[2];
+                cube_state->u_face[1] = cube_state->r_face[5];
+                cube_state->u_face[2] = cube_state->r_face[8];
+
+                cube_state->r_face[2] = cube_state->d_face[8];
+                cube_state->r_face[5] = cube_state->d_face[7];
+                cube_state->r_face[8] = cube_state->d_face[6];
+
+                cube_state->d_face[6] = original_l_face[0];
+                cube_state->d_face[7] = original_l_face[3];
+                cube_state->d_face[8] = original_l_face[6];
                 break;
+            }
+            case D: {
+                rotate_face_stickers(cube_state->d_face);
+
+                std::vector<Sticker> original_f_face = cube_state->f_face;
+                cube_state->f_face[6] = cube_state->l_face[6];
+                cube_state->f_face[7] = cube_state->l_face[7];
+                cube_state->f_face[8] = cube_state->l_face[8];
+
+                cube_state->l_face[6] = cube_state->b_face[2];
+                cube_state->l_face[7] = cube_state->b_face[1];
+                cube_state->l_face[8] = cube_state->b_face[0];
+
+                cube_state->b_face[0] = cube_state->r_face[8];
+                cube_state->b_face[1] = cube_state->r_face[7];
+                cube_state->b_face[2] = cube_state->r_face[6];
+
+                cube_state->r_face[6] = original_f_face[6];
+                cube_state->r_face[7] = original_f_face[7];
+                cube_state->r_face[8] = original_f_face[8];
+                break;
+            }
         }
 
+        // We are going to use the equivalence of [operation] * 3 to inverse [operation] as a temporary hack
         if (do_inverse) {
-
+            this->do_move(move, false, 2);
         }
     }
 }
