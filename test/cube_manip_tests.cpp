@@ -19,4 +19,19 @@ TEST_CASE("Test cube initialisations") {
 
         CHECK_EQ(test_state, solved_state);
     }
+    SUBCASE("Scramble string constructor") {
+        CubeState scrambled_state;
+        scrambled_state.u_face = { UP, UP, UP, UP, UP, UP, DOWN, DOWN, UP };
+        scrambled_state.f_face = { RIGHT, RIGHT, FRONT, FRONT, FRONT, FRONT, FRONT, FRONT, LEFT };
+        scrambled_state.r_face = { RIGHT, RIGHT, RIGHT, RIGHT, RIGHT, RIGHT, BACK, BACK, FRONT };
+        scrambled_state.l_face = { FRONT, FRONT, BACK, LEFT, LEFT, LEFT, LEFT, LEFT, LEFT };
+        scrambled_state.b_face = { BACK, BACK, RIGHT, BACK, BACK, BACK, LEFT, LEFT, BACK };
+        scrambled_state.d_face = { DOWN, DOWN, UP, DOWN, DOWN, UP, DOWN, DOWN, DOWN };
+
+        std::string scramble = "R2 U R2";
+
+        Cube test_cube(scramble);
+        CubeState test_state = test_cube.get_state();
+        CHECK_EQ(test_state, scrambled_state);
+    }
 }

@@ -3,6 +3,8 @@
 #include <utility>
 #include <vector>
 #include <string>
+#include <iostream>
+#include <iomanip>
 #include <sstream>
 
 /**
@@ -45,7 +47,19 @@ namespace rubiktrace {
         std::vector<Sticker> b_face;
         std::vector<Sticker> d_face;
 
+        static std::optional<std::string> sticker_to_string(const Sticker& sticker);
+        static std::string format_face_vector(const std::vector<Sticker>& face_vector, int alignment_spacing = 0);
+
         bool operator==(const CubeState&) const = default;
+        friend std::ostream& operator<<(std::ostream& os, const CubeState& cube) {
+            os << format_face_vector(cube.u_face) << "\n---\n";
+            os << format_face_vector(cube.l_face) << "\n---\n";
+            os << format_face_vector(cube.f_face) << "\n---\n";
+            os << format_face_vector(cube.r_face) << "\n---\n";
+            os << format_face_vector(cube.d_face) << "\n---\n";
+            os << format_face_vector(cube.b_face) << "\n---\n";
+            return os;
+        }
     };
 
     class Cube {

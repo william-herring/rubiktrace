@@ -13,6 +13,29 @@ std::optional<Move> rubiktrace::string_to_move(const std::string& str) {
     return std::nullopt;
 }
 
+std::optional<std::string> CubeState::sticker_to_string(const Sticker& sticker) {
+    if (sticker == FRONT) return "F";
+    if (sticker == RIGHT) return "R";
+    if (sticker == LEFT) return "L";
+    if (sticker == BACK) return "B";
+    if (sticker == DOWN) return "D";
+    if (sticker == UP) return "U";
+    return std::nullopt;
+}
+
+std::string CubeState::format_face_vector(const std::vector<Sticker>& face_vector, int alignment_spacing) {
+    std::ostringstream ss;
+    for (int i = 0; i < 9; i += 3) {
+        ss << std::setw(alignment_spacing) << std::setfill(' ');
+        for (int j = 0; j < 3; j ++) {
+            ss << sticker_to_string(face_vector[i + j]).value();
+        }
+        if (i != 6) ss << "\n";
+    }
+
+    return ss.str();
+}
+
 Cube::Cube() : distance_from_origin(0) {
     this->state = CubeState();
     this->set_solved();
@@ -32,7 +55,8 @@ Cube::Cube(const std::string& scramble) : distance_from_origin(0) {
         } else if (move_suffix == '2') {
             repeat = 2;
         }
-        Move move = string_to_move(move_sub).value();
+        std::string layer_move(1, move_sub[0]);
+        Move move = string_to_move(layer_move).value();
         this->do_move(move, do_inverse, repeat);
     }
 }
