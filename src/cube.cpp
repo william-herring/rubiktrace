@@ -13,7 +13,10 @@ std::optional<Move> string_to_move(const std::string& str) {
     return std::nullopt;
 }
 
-Cube::Cube() : distance_from_origin(0) {}
+Cube::Cube() : distance_from_origin(0) {
+    this->state = CubeState();
+    this->set_solved();
+}
 
 Cube::Cube(const std::string& scramble) : distance_from_origin(0) {
     this->state = CubeState();
