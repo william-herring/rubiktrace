@@ -3,7 +3,7 @@
 
 using namespace rubiktrace;
 
-std::optional<Move> string_to_move(const std::string& str) {
+std::optional<Move> rubiktrace::string_to_move(const std::string& str) {
     if (str == "U") return U;
     if (str == "F") return F;
     if (str == "R") return R;

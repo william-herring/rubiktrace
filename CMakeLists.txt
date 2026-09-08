@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 4.2)
-project(rubiktrace)
+project(rubiktrace_lib)
 
 set(CMAKE_CXX_STANDARD 20)
 
