@@ -13,7 +13,7 @@
  * moves provided in the Move enum for convenience.
  */
 namespace rubiktrace {
-    enum Face {
+    enum Sticker {
         UP,
         FRONT,
         RIGHT,
@@ -37,12 +37,12 @@ namespace rubiktrace {
     // It would be good to have some kind of logic to ensure state validity, although this step is implied
     // so long as the state is manipulated by interfacing with a Cube object.
     struct CubeState {
-        std::vector<Face> u_face;
-        std::vector<Face> f_face;
-        std::vector<Face> r_face;
-        std::vector<Face> l_face;
-        std::vector<Face> b_face;
-        std::vector<Face> d_face;
+        std::vector<Sticker> u_face;
+        std::vector<Sticker> f_face;
+        std::vector<Sticker> r_face;
+        std::vector<Sticker> l_face;
+        std::vector<Sticker> b_face;
+        std::vector<Sticker> d_face;
 
         bool operator==(const CubeState&) const = default;
     };
