@@ -9,6 +9,6 @@
  * inference of a Rubik's Cube's state.
  */
 
-using namespace rubiktrace;
-
-std::vector<Layer> deduce_transition_moves(Cube cube, const CubeState& updated_state);
+namespace rubiktrace {
+    std::vector<std::vector<Move>> deduce_possible_transition_sequences(Cube cube, const std::vector<Sticker>& face);
+}
