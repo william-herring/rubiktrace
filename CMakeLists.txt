@@ -5,6 +5,8 @@ set(CMAKE_CXX_STANDARD 20)
 
 add_library(rubiktrace_lib src/cube.cpp
         src/util.cpp
+        include/inference.h
+        src/inference.cpp
 )
 
 add_subdirectory(test)

@@ -25,7 +25,7 @@ namespace rubiktrace {
         DOWN,
     };
 
-    enum Move {
+    enum Layer {
         U,
         F,
         R,
@@ -34,7 +34,13 @@ namespace rubiktrace {
         D,
     };
 
-    std::optional<Move> string_to_move(const std::string& str);
+    struct Move {
+        Layer layer;
+        bool do_inverse;
+        int repeat;
+    };
+
+    std::optional<Layer> string_to_move(const std::string& str);
 
     // The order of entries in these face vectors should reflect a flat cube net
     // It would be good to have some kind of logic to ensure state validity, although this step is implied
@@ -75,6 +81,6 @@ namespace rubiktrace {
         void set_state(const CubeState& new_state);
         CubeState get_state() const;
 
-        void do_move(Move move, bool do_inverse = false, int repeat = 1);
+        void do_move(Move move);
     };
 }
