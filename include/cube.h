@@ -38,6 +38,8 @@ namespace rubiktrace {
         Layer layer;
         bool do_inverse;
         int repeat;
+
+        bool operator==(std::vector<Move>::const_reference move) const = default;
     };
 
     std::optional<Layer> string_to_move(const std::string& str);

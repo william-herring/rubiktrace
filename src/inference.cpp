@@ -3,7 +3,7 @@
 
 using namespace rubiktrace;
 
-std::vector<Move> find_hidden_moves(const CubeState& initial_state, const std::vector<Sticker>& current_face) {
+std::vector<Move> find_hidden_moves(const CubeState& initial_state) {
     // F moves are always potentially hidden
     std::vector<Move> result = {
         Move{F, false, 1},
@@ -34,6 +34,45 @@ std::vector<Move> find_hidden_moves(const CubeState& initial_state, const std::v
     }
 
     return result;
+}
+
+void discover_transition_sequences(const CubeState& previous_state, const std::vector<Sticker>& target_face, std::vector<Move>& current_sequence, const Layer& terminal_layer, std::vector<std::vector<Move>>& result) {
+    std::vector<Move> potential_terminal_moves = {
+        Move{terminal_layer, false, 1},
+        Move{terminal_layer, true, 1},
+        Move{terminal_layer, false, 2},
+    };
+
+    Cube test_cube(previous_state);
+    for (const auto move : current_sequence) {
+        test_cube.do_move(move);
+    }
+    CubeState prefix_state = test_cube.get_state();
+    for (const auto terminal_move : potential_terminal_moves) {
+        test_cube.do_move(terminal_move);
+        CubeState new_state = test_cube.get_state();
+        if (new_state.b_face == target_face) {
+            std::vector<Move> valid_sequence = current_sequence;
+            valid_sequence.push_back(terminal_move);
+            result.push_back(valid_sequence);
+
+            // Explore any prefix expansions
+            std::vector<Move> potential_hidden_moves = find_hidden_moves(prefix_state);
+            if (potential_hidden_moves.size() > 0) {
+                for (auto hidden : potential_hidden_moves) {
+                    if (hidden.layer != current_sequence.back().layer) { // Is this right?
+                        std::vector<Move> test_sequence = current_sequence;
+                        test_sequence.pop_back();
+                        discover_transition_sequences(prefix_state, target_face, test_sequence, terminal_layer, result);
+                    }
+                }
+            }
+        }
+
+        // This is a mess and will need to be refactored
+
+        test_cube.set_state(prefix_state);
+    }
 }
 
 std::vector<std::vector<Move>> deduce_possible_transition_sequences(Cube cube, const std::vector<Sticker>& face) {
@@ -69,7 +108,10 @@ std::vector<std::vector<Move>> deduce_possible_transition_sequences(Cube cube, c
         }
     }
 
-
+    for (const auto layer : potential_terminal_layers) {
+        std::vector<Move> starting_sequence;;
+        discover_transition_sequences(initial_state, initial_face, starting_sequence, layer, result);
+    }
 
     return result;
 }
