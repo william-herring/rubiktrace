@@ -3,6 +3,39 @@
 
 using namespace rubiktrace;
 
+std::vector<Move> find_hidden_moves(const CubeState& initial_state, const std::vector<Sticker>& current_face) {
+    // F moves are always potentially hidden
+    std::vector<Move> result = {
+        Move{F, false, 1},
+        Move{F, true, 1},
+        Move{F, false, 2},
+    };
+
+    if (is_face_symmetric(initial_state.b_face)) {
+        result.push_back(Move{B, false, 1});
+        result.push_back(Move{B, true, 1});
+        result.push_back(Move{B, false, 2});
+    }
+
+    // Test R, L, U, D layers independently out of laziness for now
+    Cube test_cube(initial_state);
+    std::vector<Layer> layers_to_test = { R, L, U, D };
+    for (const auto layer : layers_to_test) {
+        std::vector<Move> moves_to_test = {
+            Move{layer, false, 1},
+            Move{layer, true, 1},
+            Move{layer, false, 2},
+        };
+        for (auto move : moves_to_test) {
+            test_cube.do_move(move);
+            if (test_cube.get_state().b_face == initial_state.b_face) result.push_back(move);
+            test_cube.set_state(initial_state);
+        }
+    }
+
+    return result;
+}
+
 std::vector<std::vector<Move>> deduce_possible_transition_sequences(Cube cube, const std::vector<Sticker>& face) {
     std::vector<std::vector<Move>> result;
     std::set<Layer> potential_terminal_layers;
@@ -36,11 +69,7 @@ std::vector<std::vector<Move>> deduce_possible_transition_sequences(Cube cube, c
         }
     }
 
-    // We need to consider any potential hidden prefix moves (i.e. move(s) happened prior but there was no visible state change)
-    // These moves could have happened on any of the F, U, D, L, R, B (if face was symmetric) layers
-    if (is_face_symmetric(initial_face)) {
-        // How many combinations of hidden moves do we actually need to check?
-    }
+
 
     return result;
 }

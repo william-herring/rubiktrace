@@ -11,5 +11,6 @@
  */
 
 namespace rubiktrace {
+    std::vector<Move> find_hidden_moves(const CubeState& initial_state, const std::vector<Sticker>& current_face);
     std::vector<std::vector<Move>> deduce_possible_transition_sequences(Cube cube, const std::vector<Sticker>& face);
 }
