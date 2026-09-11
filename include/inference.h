@@ -1,5 +1,6 @@
 #pragma once
 #include "cube.h"
+#include <set>
 
 /**
  * @file inference.h
