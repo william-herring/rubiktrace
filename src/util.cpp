@@ -3,6 +3,10 @@
 
 using namespace rubiktrace;
 
+bool is_face_symmetric(const std::vector<Sticker>& face) {
+    return face[1] == face[3] == face[5] == face[7] && face[0] == face[2] == face[6] == face[8];
+}
+
 void rotate_face_stickers(std::vector<Sticker>& vec, const bool clockwise = true) {
     std::vector<Sticker> rotated(9);
 

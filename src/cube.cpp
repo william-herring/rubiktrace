@@ -1,9 +1,9 @@
-#include "../include/cube.h"
+#include "cube.h"
 #include "util.cpp"
 
 using namespace rubiktrace;
 
-std::optional<Move> rubiktrace::string_to_move(const std::string& str) {
+std::optional<Layer> rubiktrace::string_to_move(const std::string& str) {
     if (str == "U") return U;
     if (str == "F") return F;
     if (str == "R") return R;
@@ -56,8 +56,9 @@ Cube::Cube(const std::string& scramble) : distance_from_origin(0) {
             repeat = 2;
         }
         std::string layer_move(1, move_sub[0]);
-        Move move = string_to_move(layer_move).value();
-        this->do_move(move, do_inverse, repeat);
+        Layer layer = string_to_move(layer_move).value();
+        auto move = Move{layer, do_inverse, repeat};
+        this->do_move(move);
     }
 }
 
@@ -79,10 +80,10 @@ CubeState Cube::get_state() const { return this->state; }
  * @param do_inverse If true, the face rotation will be anti-clockwise as opposed to clockwise
  * @param repeat The number of times to repeat the move
  */
-void Cube::do_move(const Move move, const bool do_inverse, const int repeat) {
-    for (int i = 0; i < repeat; i++) {
+void Cube::do_move(const Move move) {
+    for (int i = 0; i < move.repeat; i++) {
         CubeState* cube_state = &this->state;
-        switch (move) {
+        switch (move.layer) {
             case U: {
                 rotate_face_stickers(cube_state->u_face);
 
@@ -212,8 +213,9 @@ void Cube::do_move(const Move move, const bool do_inverse, const int repeat) {
         }
 
         // We are going to use the equivalence of [operation] * 3 to inverse [operation] as a temporary hack
-        if (do_inverse) {
-            this->do_move(move, false, 2);
+        if (move.do_inverse) {
+            const auto normalised_move = Move{move.layer, false, 2};
+            this->do_move(normalised_move);
         }
     }
 }
