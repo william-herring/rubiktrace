@@ -1,4 +1,4 @@
-#include "inference.h"
+#include "../include/inference.h"
 #include "../include/util.h"
 #include <unordered_set>
 
@@ -94,7 +94,7 @@ std::optional<Algorithm> rubiktrace::completes_to_solved(const CandidateState& c
     return std::nullopt;
 }
 
-std::vector<CandidateState> infer(const CubeState& start, const std::vector<Face>& observed) {
+std::vector<CandidateState> rubiktrace::infer(const CubeState& start, const std::vector<Face>& observed) {
     std::vector<std::deque<CandidateState>> generations(observed.size() + 1);
     generations[0].push_back(CandidateState{nullptr, start, {}});
 
