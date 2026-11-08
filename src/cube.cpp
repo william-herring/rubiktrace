@@ -1,5 +1,5 @@
 #include "cube.h"
-#include "util.cpp"
+#include "../include/util.h"
 
 using namespace rubiktrace;
 
@@ -63,12 +63,12 @@ Cube::Cube(const std::string& scramble) : distance_from_origin(0) {
 }
 
 void Cube::set_solved() {
-    this->state.u_face = std::vector<Sticker>(9, UP);
-    this->state.f_face = std::vector<Sticker>(9, FRONT);
-    this->state.r_face = std::vector<Sticker>(9, RIGHT);
-    this->state.l_face = std::vector<Sticker>(9, LEFT);
-    this->state.b_face = std::vector<Sticker>(9, BACK);
-    this->state.d_face = std::vector<Sticker>(9, DOWN);
+    this->state.u_face = Face(9, UP);
+    this->state.f_face = Face(9, FRONT);
+    this->state.r_face = Face(9, RIGHT);
+    this->state.l_face = Face(9, LEFT);
+    this->state.b_face = Face(9, BACK);
+    this->state.d_face = Face(9, DOWN);
 }
 
 void Cube::set_state(const CubeState& new_state) { this->state = new_state; }
@@ -87,7 +87,7 @@ void Cube::do_move(const Move move) {
             case U: {
                 rotate_face_stickers(cube_state->u_face);
 
-                std::vector<Sticker> original_l_face = cube_state->l_face;
+                Face original_l_face = cube_state->l_face;
                 cube_state->l_face[0] = cube_state->f_face[0];
                 cube_state->l_face[1] = cube_state->f_face[1];
                 cube_state->l_face[2] = cube_state->f_face[2];
@@ -108,7 +108,7 @@ void Cube::do_move(const Move move) {
             case F: {
                 rotate_face_stickers(cube_state->f_face);
 
-                std::vector<Sticker> original_u_face = cube_state->u_face;
+                Face original_u_face = cube_state->u_face;
                 cube_state->u_face[6] = cube_state->l_face[8];
                 cube_state->u_face[7] = cube_state->l_face[5];
                 cube_state->u_face[8] = cube_state->l_face[2];
@@ -129,7 +129,7 @@ void Cube::do_move(const Move move) {
             case R: {
                 rotate_face_stickers(cube_state->r_face);
 
-                std::vector<Sticker> original_f_face = cube_state->f_face;
+                Face original_f_face = cube_state->f_face;
                 cube_state->f_face[2] = cube_state->d_face[2];
                 cube_state->f_face[5] = cube_state->d_face[5];
                 cube_state->f_face[8] = cube_state->d_face[8];
@@ -150,7 +150,7 @@ void Cube::do_move(const Move move) {
             case L: {
                 rotate_face_stickers(cube_state->l_face);
 
-                std::vector<Sticker> original_f_face = cube_state->f_face;
+                Face original_f_face = cube_state->f_face;
                 cube_state->f_face[0] = cube_state->u_face[0];
                 cube_state->f_face[3] = cube_state->u_face[3];
                 cube_state->f_face[6] = cube_state->u_face[6];
@@ -171,7 +171,7 @@ void Cube::do_move(const Move move) {
             case B: {
                 rotate_face_stickers(cube_state->b_face);
 
-                std::vector<Sticker> original_l_face = cube_state->l_face;
+                Face original_l_face = cube_state->l_face;
                 cube_state->l_face[0] = cube_state->u_face[2];
                 cube_state->l_face[3] = cube_state->u_face[1];
                 cube_state->l_face[6] = cube_state->u_face[0];
@@ -192,7 +192,7 @@ void Cube::do_move(const Move move) {
             case D: {
                 rotate_face_stickers(cube_state->d_face);
 
-                std::vector<Sticker> original_f_face = cube_state->f_face;
+                Face original_f_face = cube_state->f_face;
                 cube_state->f_face[6] = cube_state->l_face[6];
                 cube_state->f_face[7] = cube_state->l_face[7];
                 cube_state->f_face[8] = cube_state->l_face[8];

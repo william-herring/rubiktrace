@@ -1,117 +1,115 @@
 #include "inference.h"
-#include "util.cpp"
+#include "../include/util.h"
+#include <unordered_set>
 
 using namespace rubiktrace;
 
-std::vector<Move> find_hidden_moves(const CubeState& initial_state) {
-    // F moves are always potentially hidden
-    std::vector<Move> result = {
-        Move{F, false, 1},
-        Move{F, true, 1},
-        Move{F, false, 2},
-    };
+namespace {
+    // Hidden moves are bounded because the closure could otherwise wander
+    constexpr int MAX_HIDDEN_MOVES = 4;
 
-    if (is_face_symmetric(initial_state.b_face)) {
-        result.push_back(Move{B, false, 1});
-        result.push_back(Move{B, true, 1});
-        result.push_back(Move{B, false, 2});
+    const std::vector<Move>& all_moves() {
+        static const std::vector<Move> moves = [] {
+            std::vector<Move> m;
+            for (Layer l : {U, F, R, L, B, D}) {
+                m.push_back(Move{l, false, 1});
+                m.push_back(Move{l, true, 1});
+                m.push_back(Move{l, false, 2});
+            }
+            return m;
+        }();
+        return moves;
     }
 
-    // Test R, L, U, D layers independently out of laziness for now
-    Cube test_cube(initial_state);
-    std::vector<Layer> layers_to_test = { R, L, U, D };
-    for (const auto layer : layers_to_test) {
-        std::vector<Move> moves_to_test = {
-            Move{layer, false, 1},
-            Move{layer, true, 1},
-            Move{layer, false, 2},
-        };
-        for (auto move : moves_to_test) {
-            test_cube.do_move(move);
-            if (test_cube.get_state().b_face == initial_state.b_face) result.push_back(move);
-            test_cube.set_state(initial_state);
-        }
+    std::string state_key(const CubeState& s) {
+        std::string key;
+        // 9*6 = 54 stickers
+        key.reserve(54);
+        for (const Face* f : {&s.u_face, &s.f_face, &s.r_face, &s.l_face, &s.b_face, &s.d_face})
+            for (const Sticker st : *f) key.push_back(static_cast<char>('0' + st));
+        return key;
     }
 
-    return result;
+    CubeState after(const CubeState& s, const Move& m) {
+        Cube c(s);
+        c.do_move(m);
+        return c.get_state();
+    }
 }
 
-void discover_transition_sequences(const CubeState& previous_state, const std::vector<Sticker>& target_face, std::vector<Move>& current_sequence, const Layer& terminal_layer, std::vector<std::vector<Move>>& result) {
-    std::vector<Move> potential_terminal_moves = {
-        Move{terminal_layer, false, 1},
-        Move{terminal_layer, true, 1},
-        Move{terminal_layer, false, 2},
-    };
+std::vector<HiddenPrefix> rubiktrace::hidden_closure(const CubeState& start) {
+    std::vector<HiddenPrefix> result{{start, {}}};
+    std::unordered_set<std::string> seen{state_key(start)};
 
-    Cube test_cube(previous_state);
-    for (const auto move : current_sequence) {
-        test_cube.do_move(move);
-    }
-    CubeState prefix_state = test_cube.get_state();
-    for (const auto terminal_move : potential_terminal_moves) {
-        test_cube.do_move(terminal_move);
-        CubeState new_state = test_cube.get_state();
-        if (new_state.b_face == target_face) {
-            std::vector<Move> valid_sequence = current_sequence;
-            valid_sequence.push_back(terminal_move);
-            result.push_back(valid_sequence);
-
-            // Explore any prefix expansions
-            std::vector<Move> potential_hidden_moves = find_hidden_moves(prefix_state);
-            if (potential_hidden_moves.size() > 0) {
-                for (auto hidden : potential_hidden_moves) {
-                    if (hidden.layer != current_sequence.back().layer) { // Is this right?
-                        std::vector<Move> test_sequence = current_sequence;
-                        test_sequence.pop_back();
-                        discover_transition_sequences(prefix_state, target_face, test_sequence, terminal_layer, result);
-                    }
-                }
+    size_t begin = 0;
+    for (int depth = 0; depth < MAX_HIDDEN_MOVES; ++depth) {
+        const size_t end = result.size();
+        for (size_t i = begin; i < end; ++i) {
+            for (const Move& m : all_moves()) {
+                CubeState next = after(result[i].state, m);
+                if (next.f_face != start.f_face) continue; // not hidden
+                if (!seen.insert(state_key(next)).second) continue;
+                Algorithm path = result[i].moves;
+                path.push_back(m);
+                result.push_back({std::move(next), std::move(path)});
             }
         }
-
-        // This is a mess and will need to be refactored
-
-        test_cube.set_state(prefix_state);
+        begin = end;
     }
+    return result;
 }
 
-std::vector<std::vector<Move>> deduce_possible_transition_sequences(Cube cube, const std::vector<Sticker>& face) {
-    std::vector<std::vector<Move>> result;
-    std::set<Layer> potential_terminal_layers;
+std::vector<CandidateState> rubiktrace::find_candidate_children(CandidateState& parent, const Face& observed_face) {
+    std::vector<CandidateState> children;
+    std::unordered_set<std::string> seen;
 
-    // The assumption is that we see the B face
-    CubeState initial_state = cube.get_state();
-    std::vector<Sticker>& initial_face = initial_state.b_face;
+    for (const HiddenPrefix& prefix : hidden_closure(parent.cube_state)) {
+        for (const Move& m : all_moves()) {
+            CubeState next = after(prefix.state, m);
+            if (next.f_face != observed_face) continue;
+            if (!seen.insert(state_key(next)).second) continue;
 
-    // Look for edge diff
-    if (face[1] != initial_face[1]) potential_terminal_layers.insert(Layer::D);
-    else if (face[3] != initial_face[3]) potential_terminal_layers.insert(Layer::L);
-    else if (face[5] != initial_face[5]) potential_terminal_layers.insert(Layer::R);
-    else if (face[7] != initial_face[7]) potential_terminal_layers.insert(Layer::U);
-    // Look for corner diff if edges have not changed
-    if (potential_terminal_layers.size() == 0) {
-        if (face[0] != initial_face[0]) {
-            potential_terminal_layers.insert(Layer::D);
-            potential_terminal_layers.insert(Layer::L);
-        }
-        if (face[2] != initial_face[2]) {
-            potential_terminal_layers.insert(Layer::D);
-            potential_terminal_layers.insert(Layer::R);
-        }
-        if (face[6] != initial_face[6]) {
-            potential_terminal_layers.insert(Layer::U);
-            potential_terminal_layers.insert(Layer::L);
-        }
-        if (face[8] != initial_face[8]) {
-            potential_terminal_layers.insert(Layer::U);
-            potential_terminal_layers.insert(Layer::R);
+            CandidateState child;
+            child.parent = &parent;
+            child.cube_state = std::move(next);
+            child.transition_from_origin = parent.transition_from_origin;
+            child.transition_from_origin.insert(child.transition_from_origin.end(),
+                                                prefix.moves.begin(), prefix.moves.end());
+            child.transition_from_origin.push_back(m);
+            children.push_back(std::move(child));
         }
     }
+    return children;
+}
 
-    for (const auto layer : potential_terminal_layers) {
-        std::vector<Move> starting_sequence;;
-        discover_transition_sequences(initial_state, initial_face, starting_sequence, layer, result);
+std::optional<Algorithm> rubiktrace::completes_to_solved(const CandidateState& candidate) {
+    const CubeState solved = Cube().get_state();
+    for (const HiddenPrefix& prefix : hidden_closure(candidate.cube_state)) {
+        if (prefix.state == solved) {
+            Algorithm full = candidate.transition_from_origin;
+            full.insert(full.end(), prefix.moves.begin(), prefix.moves.end());
+            return full;
+        }
+    }
+    return std::nullopt;
+}
+
+std::vector<CandidateState> infer(const CubeState& start, const std::vector<Face>& observed) {
+    std::vector<std::deque<CandidateState>> generations(observed.size() + 1);
+    generations[0].push_back(CandidateState{nullptr, start, {}});
+
+    for (size_t n = 0; n < observed.size(); ++n) {
+        for (CandidateState& parent : generations[n])
+            for (CandidateState& child : find_candidate_children(parent, observed[n]))
+                generations[n + 1].push_back(std::move(child));
     }
 
-    return result;
+    std::vector<CandidateState> solutions;
+    for (const CandidateState& c : generations.back())
+        if (auto full = completes_to_solved(c)) {
+            CandidateState s = c;
+            s.transition_from_origin = *full;
+            solutions.push_back(std::move(s));
+        }
+    return solutions;
 }

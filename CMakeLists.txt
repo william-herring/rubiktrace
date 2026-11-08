@@ -4,7 +4,7 @@ project(rubiktrace_lib)
 set(CMAKE_CXX_STANDARD 20)
 
 add_library(rubiktrace_lib src/cube.cpp
-        src/util.cpp
+        include/util.h
         include/inference.h
         src/inference.cpp
 )
