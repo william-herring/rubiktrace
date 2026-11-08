@@ -3,7 +3,7 @@
 
 using namespace rubiktrace;
 
-std::optional<Layer> rubiktrace::string_to_move(const std::string& str) {
+std::optional<Layer> rubiktrace::string_to_layer(const std::string& str) {
     if (str == "U") return U;
     if (str == "F") return F;
     if (str == "R") return R;
@@ -21,6 +21,24 @@ std::optional<std::string> CubeState::sticker_to_string(const Sticker& sticker) 
     if (sticker == DOWN) return "D";
     if (sticker == UP) return "U";
     return std::nullopt;
+}
+
+std::string Move::to_string() const {
+    std::ostringstream ss;
+    if (layer == U) ss << "U";
+    else if (layer == F) ss << "F";
+    else if (layer == R) ss << "R";
+    else if (layer == L) ss << "L";
+    else if (layer == B) ss << "B";
+    else if (layer == D) ss << "D";
+
+    if (repeat % 2 == 0 && repeat > 0) {
+        ss << "2";
+    } else if ((repeat % 3 == 0 && repeat > 0) || do_inverse) {
+        ss << "'";
+    }
+
+    return ss.str();
 }
 
 std::string CubeState::format_face_vector(const std::vector<Sticker>& face_vector, int alignment_spacing) {
@@ -56,7 +74,7 @@ Cube::Cube(const std::string& scramble) : distance_from_origin(0) {
             repeat = 2;
         }
         std::string layer_move(1, move_sub[0]);
-        Layer layer = string_to_move(layer_move).value();
+        Layer layer = string_to_layer(layer_move).value();
         auto move = Move{layer, do_inverse, repeat};
         this->do_move(move);
     }

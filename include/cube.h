@@ -41,11 +41,12 @@ namespace rubiktrace {
         int repeat;
 
         bool operator==(const Move& move) const = default;
+        std::string to_string() const;
     };
 
     using Face = std::vector<Sticker>;
 
-    std::optional<Layer> string_to_move(const std::string& str);
+    std::optional<Layer> string_to_layer(const std::string& str);
 
     // The order of entries in these face vectors should reflect a flat cube net
     // It would be good to have some kind of logic to ensure state validity, although this step is implied
